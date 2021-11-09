@@ -1,0 +1,9 @@
+#!/bin/bash
+
+let a=10
+let b=20
+
+while [ true ]
+do
+	let c=$((a * b))
+done

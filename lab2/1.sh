@@ -1,5 +1,6 @@
 #!/bin/bash
 
-ps -u root --no-headers | wc -l  > res1 
-ps -u root --no-headers | awk '{print $1 "\:" $4}' >> res1
+tmp=`ps -u root -o pid,command --no-headers`
+wc -l <<< "$tmp" > res1
+awk '{print $1 ":" $2}' <<< "$tmp" >> res1 
 

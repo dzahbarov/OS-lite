@@ -5,17 +5,17 @@ for line in `ps -ax -o pid,command --no-headers`
 do
 PID=`echo $line | awk '{print $1}'`
 echo $line | awk '{printf "%s*", $1}' >> tmpFor7
-echo $line | awk '{printf "%s\*", $2}' >> tmpFor7
-awk '{ if ($1 == "read_bytes:") printf "%d\*\n", $2}' /proc/$PID/io >> tmpFor7
+echo $line | awk '{printf "%s*", $2}' >> tmpFor7
+awk '{ if ($1 == "read_bytes:") printf "%d*\n", $2}' /proc/$PID/io 2> /dev/null >> tmpFor7
 done
-sleep 1m
+sleep 10s
 echo "" > tmpFor7_2
 for line in `cat tmpFor7`
 do
 pid=`echo $line | awk -F* '{print $1}'`
 cmd=`echo $line | awk -F* '{print $2}'`
 start=`echo $line | awk -F* '{print $3}'`
-finish=`awk '{ if ($1 == "read_bytes:") print $2}' /proc/$pid/io`
+finish=`awk '{ if ($1 == "read_bytes:") print $2}' /proc/$pid/io 2>/dev/null`
 echo -n "$pid*"
 echo -n "$cmd*"
 echo "$start" "$finish" | awk '{print ($2 - $1) }'

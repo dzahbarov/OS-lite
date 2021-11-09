@@ -1,3 +1,3 @@
 #!/bin/bash
-ps -ef | awk '$8 ~ /sbin/ {print $2}' 
+ps -ef | awk '$8 ~ ^/sbin/ {print $0}' 
 
