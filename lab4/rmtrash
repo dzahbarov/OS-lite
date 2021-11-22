@@ -1,0 +1,23 @@
+#!/bin/bash
+
+file_name="$1"
+
+path_to_trash=$HOME'/.trash'
+
+if [ -d $path_to_trash ]
+then
+	echo 'catalog /~/.trash exist!'
+else
+	echo 'catalog /~/.trash does not exist!'
+	echo 'creating hidden catalog trash...'
+	mkdir $path_to_trash
+	echo 'hidden catalog trash successfully created!'
+fi
+
+unique_name=`date +'%d.%m.%y_%T'`
+path_in_trash=$path_to_trash'/'$unique_name
+echo 'Moving file to '$path_in_trash
+ln "$file_name" $path_in_trash && {
+	rm "$file_name"
+	echo $PWD/"$file_name""|"$unique_name >> ~/.trash.log
+}

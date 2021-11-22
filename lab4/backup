@@ -1,0 +1,72 @@
+#!/bin/bash
+
+for dir in `find /home/user -regextype posix-extended -regex  ".*/Backup-[0-9]{4}-[0-9]{2}-[0-9]{2}"`
+do
+	dateOfDirStr=`echo $dir | awk -F'-' '{print $2"-"$3"-"$4}'`
+	dateOfDir=`date -d $dateOfDirStr '+%s'`
+	echo $dateOfFile
+	dateOfNow=`date '+%s'`
+	echo $dateOfNow
+	diffInDays=$((($dateOfNow-$dateOfDir)/85400))
+	echo $diffInDays
+	if [[ "$diffInDays" -lt "7" ]]
+	then
+		fullNameYoungDir=$dir
+		echo $fullNameYoungDir
+	fi
+done
+
+if [[ -z "$fullNameYoungDir" ]]
+then
+	# Надо создавать новую директорию
+	echo "Creating new dir"
+	now=`date +'%Y-%m-%d'`
+	name="/home/user/Backup-"$now
+	cp -R "/home/user/source" $name
+	echo "------------------------------------" >> /home/user/backup-report
+	echo "Name: "$name >> /home/user/backup-report
+	echo "Date: "$now >> /home/user/backup-report
+	echo "Content:" >> /home/user/backup-report
+	cd $name
+	find * -type f >> /home/user/backup-report
+else
+	# Не надо создавать новую директорию
+	echo "Shouldn't create new dir"
+	echo "------------------------------------" >> /home/user/backup-report
+	echo "Name: "$fullNameYoungDir >> /home/user/backup-report
+	echo "Date: "`date +'%Y-%m-%d'` >> /home/user/backup-report
+	echo "Changes: " >> /home/user/backup-report
+	cd /home/user/source
+	for file in `find * -type f `
+	do
+		if [[ -f $fullNameYoungDir"/"$file ]] 
+		then
+			echo exist
+			if ((`stat -c%s $fullNameYoungDir"/"$file`==`stat -c%s $file`))
+			then
+				echo "the same"
+				# No operation
+			else
+				echo "different"
+				newname=$fullNameYoungDir"/"$file'-'`date +'%Y-%m-%d'`
+				mv $fullNameYoungDir"/"$file $newname
+				path=`echo $file | awk 'BEGIN{FS="/"; OFS="/"} {NF--; print}'`
+				cp $file $fullNameYoungDir"/"$file
+				echo "changed: "$file $newname >> /home/user/.tmp
+			fi
+		else
+			echo notexist
+			path=`echo $file | awk 'BEGIN{FS="/"; OFS="/"} {NF--; print}'`
+			cp $file $fullNameYoungDir"/"$file
+			echo "added: "$file >> /home/user/backup-report
+		fi
+
+	done
+
+fi
+
+if [[ -f /home/user/.tmp ]]
+then
+	cat /home/user/.tmp >>  /home/user/backup-report
+	rm /home/user/.tmp
+fi
