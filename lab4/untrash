@@ -10,17 +10,19 @@ IFS=$(echo -en "\n\b")
 for line in `awk -v file_name="$file_name" ' BEGIN { FS="|"; OFS="|" } {if ($1 ~ file_name"$") print $0 }' ~/.trash.log`
 
 do
-	path_with_name=`echo $line | awk  'BEGIN { FS="|"; OFS="|" } {print $1}'`
-	name_in_trash=`echo $line | awk  'BEGIN { FS="|"; OFS="|" } {print $2}'`
+	path_with_name=`echo "$line" | awk  'BEGIN { FS="|"; OFS="|" } {print $1}'`
+	name_in_trash=`echo "$line" | awk  'BEGIN { FS="|"; OFS="|" } {print $2}'`
 	echo "Do you want to untrash $path_with_name?(y/n)"
 	read resp;
 	case "$resp" in
 		"y")
+			cp ~/.trash.log ~/.trash.tmp
+			rm ~/.trash.log
+
 #			echo $path_with_name
-			path=`echo $path_with_name | awk 'BEGIN{FS="/"; OFS="/"} {NF--; print}'`
-			name=`echo $path_with_name | awk -F "/" '{ print $NF }'`
-			echo $path
-			if [ -d $path ]
+			path=`echo "$path_with_name" | awk 'BEGIN{FS="/"; OFS="/"} {NF--; print}'`
+			name=`echo "$path_with_name" | awk -F "/" '{ print $NF }'`
+			if [ -d "$path" ]
 			then
 				echo "dir exists"
 			else
@@ -28,22 +30,22 @@ do
 				echo "File will be untrash into home dir"
 				path=$HOME
 			fi
-			full_path_to_file_in_trash=$path_to_trash"/"$name_in_trash
-			full_path_to_file_untrash=$path"/"$name
-			while ! ln $full_path_to_file_in_trash $path"/"$name
+			full_path_to_file_in_trash="$path_to_trash""/""$name_in_trash"
+			full_path_to_file_untrash="$path""/""$name"
+			echo "$full_path_to_file_in_trash"
+			echo "$path/$name"
+			while ! ln "$full_path_to_file_in_trash" "$path/$name" 2>/dev/null
 			do
 				echo "enter new name"
 				read name
 			done
-			rm $full_path_to_file_in_trash
-			awk -v name_in_trash="$name_in_trash" ' BEGIN { FS="|"; OFS="|" } {if ($2 != name_in_trash) print $0 }' ~/.trash.log >> ~/.trash.tmp
+			rm "$full_path_to_file_in_trash"
+
+			awk -v name_in_trash="$name_in_trash" 'BEGIN { FS="|"; OFS="|" } { if ($2 != name_in_trash) print $0 }' ~/.trash.tmp >> ~/.trash.log
 			;;
 		"n")
 			# No operation
 			;;
 	esac
-
 done
-if [ -f ~/.trash.tmp ];then
-mv ~/.trash.tmp ~/.trash.log
-fi
+

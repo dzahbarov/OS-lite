@@ -17,7 +17,13 @@ fi
 unique_name=`date +'%d.%m.%y_%T'`
 path_in_trash=$path_to_trash'/'$unique_name
 echo 'Moving file to '$path_in_trash
-ln "$file_name" $path_in_trash && {
-	rm "$file_name"
-	echo $PWD/"$file_name""|"$unique_name >> ~/.trash.log
+
+if [[ -f "$file_name" ]]
+then
+	ln "$file_name" $path_in_trash && {
+		rm "$file_name"
+		echo $PWD/"$file_name""|"$unique_name >> ~/.trash.log
 }
+else
+	echo "Such file doesn't exist"
+fi
